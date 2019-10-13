@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="./web3.min.js"></script>
+</head>
+
+<body>
+  <script>
+    const httpProvider = 'https://rinkeby.infura.io/v3/8ceea6b4c7a84e49bb81d3622cd58093';
+
+    function checkEther(account) {
+      const result = document.getElementById('ether');
+      if (Web3) {
+        const web3 = new Web3(new Web3.providers.HttpProvider(httpProvider));
+        web3.eth.getBalance(account).then(wei => {
+          const ether = web3.utils.fromWei(wei, 'ether');
+          result.innerHTML = 'Account: ' + account + '<br/>';
+          result.innerHTML += 'has ' + ether + ' ether<br />';
+          result.innerHTML += 'which equal to ' + wei + ' wei<br />';
+          web3.eth.getBlockNumber().then(blockNumber => {
+            console.log('Block number = ' + blockNumber);
+            result.innerHTML += 'Last block number = ' + blockNumber + '<br />';
+          }).catch(console.error);
+        }).catch(console.error);
+      } else {
+        result.innerHTML = 'ERROR: cannot find web3 library';
+        console.error('Cannot find web3');
+      }
+    }
+
+    function signAndSendTransaction(web3, result, account, transaction) {
+      return account.signTransaction(transaction).then(function (results) {
+        console.log(results);
+        result.innerHTML += `<pre>${JSON.stringify(results, undefined, 2)}</pre><br />`;
+        if ('rawTransaction' in results) {
+          web3.eth.sendSignedTransaction(results.rawTransaction).then(function (receipt) {
+            result.innerHTML += `<pre>${JSON.stringify(receipt, undefined, 2)}</pre><br />`;
+            console.log(receipt);
+          }).catch(console.error);
+        } else {
+          console.error('Cannot find rawTransaction in results');
+        }
+      }).catch(console.error);
+    }
+
+    function sendEther(source, target, amount, key) {
+      const result = document.getElementById('sent');
+      if (Web3) {
+        const web3 = new Web3(new Web3.providers.HttpProvider(httpProvider));
+        const account = web3.eth.accounts.privateKeyToAccount('0x' + key);
+        console.log(account);
+        if (account.address !== source) {
+          result.innerHTML = 'ERROR: Key mismatch!';
+          console.error('Key mismatch!')
+        } else {
+          signAndSendTransaction(web3, result, account, {
+            from: source,
+            to: target,
+            value: web3.utils.toWei(amount, 'ether'),
+            gas: '30000'
+          });
+        }
+      } else {
+        result.innerHTML = 'ERROR: cannot find web3 library';
+        console.error('Cannot find web3');
+      }
+    }
+  </script>
+  <form action="javascript:;" onsubmit="return checkEther(this.account.value);">
+    <label for="account">Account:</label><input type="text" name="account" id="account">
+    <input type="submit" value="Get Ether Info">
+  </form>
+  <div id="ether"></div>
+  <form action="javascript:;"
+    onsubmit="return sendEther(this.source.value,this.target.value,this.ether.value,this.key.value);">
+    <label for="ether">Transfer Ether: </label><input type="number" name="ether" id="ether" step="0.00000001"><br />
+    <label for="source">From Account: </label><input type="text" name="source" id="source"><br />
+    <label for="target">To Account: </label><input type="text" name="target" id="target"><br />
+    <label for="key">Private Key: </label><input type="password" name="key" id="key">
+    <input type="submit" value="Send">
+  </form>
+  <div id="sent" style="overflow-wrap: break-word;"></div>
+
+</body>
+
+</html>
