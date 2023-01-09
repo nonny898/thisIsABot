@@ -17,8 +17,8 @@
     "@line/bot-sdk": "^6.8.2",
     "@types/request-promise-native": "^1.0.17",
     "crypto": "^1.0.1",
-    "firebase-admin": "^8.0.0",
-    "firebase-functions": "^3.1.0",
+    "firebase-admin": "^11.4.1",
+    "firebase-functions": "^3.24.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7"
   },
